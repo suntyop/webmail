@@ -254,10 +254,12 @@ export default function MessageView({ folder, folderKind, uid, onBack, onReply, 
       <div className="shrink-0 flex items-center gap-1 px-2 sm:px-4 h-14 border-b border-slate-100 dark:border-slate-800">
         <button
           onClick={onBack}
-          className="p-2 rounded-full text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition lg:hidden"
+          title="Retour à la liste"
+          className="p-2 rounded-full text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
         >
           <ArrowLeft className="h-5 w-5" />
         </button>
+        <div className="w-px h-5 bg-slate-200 dark:bg-slate-700 mx-1" />
         {folderKind !== 'archive' && (
           <Action icon={Archive} label="Archiver" onClick={handleArchive} />
         )}
