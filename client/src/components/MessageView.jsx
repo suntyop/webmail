@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import { api } from '../api.js';
 import { formatDate, displayName, initials, avatarColor, formatSize } from '../utils.js';
-import { splitMessage } from '../quote.js';
+import { parseThread, parseAttribution } from '../quote.js';
 
 function HtmlFrame({ html }) {
   const ref = useRef(null);
@@ -69,17 +69,37 @@ function TextPart({ text }) {
 }
 
 /**
- * Affiche le corps du message en repliant l'historique cité (échanges
- * précédents) derrière un bouton « ••• », façon Gmail.
+ * En-tête d'un message précédent du fil (avatar + qui/quand).
+ */
+function QuotedHeader({ attribution }) {
+  const { name, address, label } = parseAttribution(attribution);
+  const seed = address || name || label;
+  return (
+    <div className="flex items-center gap-2.5 px-3 py-2">
+      <div
+        className={`h-7 w-7 shrink-0 rounded-full ${avatarColor(seed)} text-white text-[11px] font-semibold flex items-center justify-center`}
+      >
+        {initials({ name, address: address || label })}
+      </div>
+      <p className="text-xs text-slate-500 dark:text-slate-400 leading-snug line-clamp-2">
+        {label}
+      </p>
+    </div>
+  );
+}
+
+/**
+ * Affiche le corps du message, et déroule l'historique des échanges précédents
+ * sous forme de cartes individuelles délimitées (façon conversation Gmail).
  */
 function MessageBody({ msg }) {
-  const { type, main, quoted } = useMemo(() => splitMessage(msg), [msg]);
+  const { type, main, thread } = useMemo(() => parseThread(msg), [msg]);
   const [showQuote, setShowQuote] = useState(false);
 
   const render = (content) =>
     type === 'html' ? <HtmlFrame html={content} /> : <TextPart text={content} />;
 
-  if (!main && !quoted) {
+  if (!main && thread.length === 0) {
     return (
       <span className="text-slate-400 flex items-center gap-2">
         <Mail className="h-4 w-4" /> Message vide
@@ -89,25 +109,38 @@ function MessageBody({ msg }) {
 
   return (
     <div>
-      {render(main)}
+      {main && render(main)}
 
-      {quoted && (
-        <div className="mt-1">
+      {thread.length > 0 && (
+        <div className="mt-2">
           <button
             onClick={() => setShowQuote((v) => !v)}
             title={showQuote ? "Masquer l'historique" : 'Afficher les messages précédents'}
-            className={`inline-flex items-center justify-center h-6 px-2 rounded-full transition ${
+            className={`inline-flex items-center gap-1.5 h-7 px-3 rounded-full text-xs font-medium transition ${
               showQuote
                 ? 'bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600'
-                : 'bg-slate-200 dark:bg-slate-700 text-slate-500 hover:bg-slate-300 dark:hover:bg-slate-600'
+                : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700'
             }`}
           >
             <MoreHorizontal className="h-4 w-4" />
+            {thread.length > 1
+              ? `${thread.length} messages précédents`
+              : 'Message précédent'}
           </button>
 
           {showQuote && (
-            <div className="mt-2 pl-3 border-l-2 border-slate-200 dark:border-slate-700 animate-fade-in">
-              {render(quoted)}
+            <div className="mt-3 space-y-3 animate-fade-in">
+              {thread.map((m, i) => (
+                <div
+                  key={i}
+                  className="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/60 dark:bg-slate-800/40 overflow-hidden"
+                >
+                  <div className="border-b border-slate-200/70 dark:border-slate-700/70 bg-slate-100/60 dark:bg-slate-800/60">
+                    <QuotedHeader attribution={m.attribution} />
+                  </div>
+                  <div className="px-3 py-2">{render(m.content)}</div>
+                </div>
+              ))}
             </div>
           )}
         </div>
