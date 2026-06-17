@@ -29,15 +29,13 @@ export default function Sidebar({ folders, current, onSelect, onCompose }) {
 
   return (
     <div className="flex flex-col h-full bg-white dark:bg-slate-900 py-3">
-      <div className="px-3 mb-2">
+      <div className="px-3 mb-3">
         <button
           onClick={onCompose}
-          className="flex items-center gap-3 pl-4 pr-6 h-14 rounded-2xl bg-white dark:bg-slate-800 shadow-md shadow-slate-200/70 dark:shadow-black/30 border border-slate-100 dark:border-slate-700 hover:shadow-lg hover:bg-slate-50 dark:hover:bg-slate-700 active:scale-[0.99] transition text-slate-700 dark:text-slate-100"
+          className="group w-full flex items-center justify-center gap-2.5 h-12 rounded-full bg-gradient-to-r from-indigo-500 via-violet-500 to-violet-600 text-white font-semibold shadow-lg shadow-indigo-500/30 hover:shadow-xl hover:shadow-indigo-500/40 hover:-translate-y-0.5 active:translate-y-0 active:shadow-md transition-all duration-200 whitespace-nowrap"
         >
-          <span className="h-9 w-9 rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shrink-0">
-            <Pencil className="h-4 w-4 text-white" />
-          </span>
-          <span className="font-medium">Nouveau message</span>
+          <Pencil className="h-[18px] w-[18px] transition-transform group-hover:-rotate-12" />
+          Nouveau message
         </button>
       </div>
 
