@@ -327,6 +327,11 @@ router.post(
       port: config.smtp.port,
       secure: config.smtp.secure,
       auth: { user: email, pass: password },
+      // Délais courts : en cas de port SMTP bloqué/injoignable, on échoue
+      // rapidement avec une erreur claire plutôt que de rester bloqué.
+      connectionTimeout: 15000,
+      greetingTimeout: 10000,
+      socketTimeout: 20000,
     });
 
     // Compile une fois le MIME brut pour l'envoyer ET l'archiver dans "Envoyés".
