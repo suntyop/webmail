@@ -8,10 +8,21 @@ import { asyncHandler } from '../middleware.js';
 import {
   categorize,
   findSpecialFolder,
+  findTextPart,
+  makeSnippet,
   mapAddresses,
   parseMessage,
   structureHasAttachments,
 } from '../mailHelpers.js';
+
+function streamToBuffer(stream) {
+  return new Promise((resolve, reject) => {
+    const chunks = [];
+    stream.on('data', (c) => chunks.push(c));
+    stream.on('end', () => resolve(Buffer.concat(chunks)));
+    stream.on('error', reject);
+  });
+}
 
 const router = Router();
 const upload = multer({
@@ -121,8 +132,42 @@ function summarize(msg) {
     flagged: msg.flags?.has('\\Flagged') ?? false,
     answered: msg.flags?.has('\\Answered') ?? false,
     hasAttachments: structureHasAttachments(msg.bodyStructure),
+    textPart: findTextPart(msg.bodyStructure),
   };
 }
+
+/* ------------------------------------------------------------------ */
+/* Aperçus (snippets) d'une page de messages                          */
+/* ------------------------------------------------------------------ */
+router.post(
+  '/messages/preview',
+  asyncHandler(async (req, res) => {
+    const { folder = 'INBOX', items = [] } = req.body || {};
+    const client = await getClient(req.session);
+    const previews = {};
+    const lock = await client.getMailboxLock(folder);
+    try {
+      for (const item of items) {
+        if (!item?.part) {
+          previews[item.uid] = '';
+          continue;
+        }
+        try {
+          const { content } = await client.download(String(item.uid), item.part, {
+            uid: true,
+          });
+          const buf = await streamToBuffer(content);
+          previews[item.uid] = makeSnippet(buf.toString('utf8'));
+        } catch {
+          previews[item.uid] = '';
+        }
+      }
+    } finally {
+      lock.release();
+    }
+    res.json({ previews });
+  })
+);
 
 /* ------------------------------------------------------------------ */
 /* Lecture d'un message                                               */
@@ -250,6 +295,31 @@ router.delete(
         await client.messageMove(uid, trash, { uid: true });
         res.json({ ok: true, action: 'moved-to-trash' });
       }
+    } finally {
+      lock.release();
+    }
+  })
+);
+
+/* ------------------------------------------------------------------ */
+/* Archivage (déplacement vers le dossier Archives)                   */
+/* ------------------------------------------------------------------ */
+router.post(
+  '/messages/:uid/archive',
+  asyncHandler(async (req, res) => {
+    const folder = req.query.folder || 'INBOX';
+    const uid = String(req.params.uid);
+    const client = await getClient(req.session);
+    const archive = await findSpecialFolder(client, 'archive');
+    if (!archive) {
+      return res.status(400).json({ error: "Aucun dossier d'archives disponible" });
+    }
+    const lock = await client.getMailboxLock(folder);
+    try {
+      if (folder !== archive) {
+        await client.messageMove(uid, archive, { uid: true });
+      }
+      res.json({ ok: true });
     } finally {
       lock.release();
     }

@@ -52,6 +52,15 @@ export const api = {
     request(`/messages/${uid}?folder=${encodeURIComponent(folder)}`, {
       method: 'DELETE',
     }),
+  archive: (folder, uid) =>
+    request(`/messages/${uid}/archive?folder=${encodeURIComponent(folder)}`, {
+      method: 'POST',
+    }),
+  previews: (folder, items) =>
+    request('/messages/preview', {
+      method: 'POST',
+      body: JSON.stringify({ folder, items }),
+    }),
   send: (formData) => request('/send', { method: 'POST', body: formData }),
 
   attachmentUrl: (folder, uid, index, inline = false) =>

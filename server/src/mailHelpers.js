@@ -39,6 +39,53 @@ export function structureHasAttachments(node) {
 }
 
 /**
+ * Trouve l'identifiant de partie d'un corps texte (text/plain de préférence,
+ * sinon text/html) pour pouvoir en télécharger un aperçu.
+ */
+export function findTextPart(node) {
+  if (!node) return null;
+  const isLeaf = !node.childNodes || node.childNodes.length === 0;
+  if (isLeaf) {
+    if ((node.type || '').startsWith('text/')) return node.part || '1';
+    return null;
+  }
+  // Privilégie une feuille text/plain directe.
+  for (const child of node.childNodes) {
+    if (
+      child.type === 'text/plain' &&
+      (!child.childNodes || child.childNodes.length === 0)
+    ) {
+      return child.part;
+    }
+  }
+  // Recherche en profondeur (text/plain puis text/html).
+  for (const child of node.childNodes) {
+    const found = findTextPart(child);
+    if (found) return found;
+  }
+  return null;
+}
+
+/**
+ * Construit un court aperçu lisible à partir de texte brut ou HTML.
+ */
+export function makeSnippet(text = '') {
+  return text
+    .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+    .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
+    .replace(/&#39;|&apos;/gi, "'")
+    .replace(/&quot;/gi, '"')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 200);
+}
+
+/**
  * Convertit un objet adresse imapflow en { name, address }[].
  */
 export function mapAddresses(addr) {

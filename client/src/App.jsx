@@ -1,12 +1,12 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Menu, Loader2, Mail } from 'lucide-react';
+import { Loader2, Mail, X } from 'lucide-react';
 import { api } from './api.js';
 import Login from './components/Login.jsx';
+import Topbar from './components/Topbar.jsx';
 import Sidebar from './components/Sidebar.jsx';
 import MessageList from './components/MessageList.jsx';
 import MessageView from './components/MessageView.jsx';
 import Composer from './components/Composer.jsx';
-import { FOLDER_LABELS } from './utils.js';
 
 export default function App() {
   const [user, setUser] = useState(null);
@@ -14,15 +14,16 @@ export default function App() {
 
   const [folders, setFolders] = useState([]);
   const [folder, setFolder] = useState('INBOX');
+  const [query, setQuery] = useState('');
   const [selected, setSelected] = useState(null); // { uid, folder }
   const [reloadToken, setReloadToken] = useState(0);
+  const [refreshing, setRefreshing] = useState(false);
 
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [composer, setComposer] = useState(null); // { mode, original }
+  const [composer, setComposer] = useState(null);
 
   const currentKind = folders.find((f) => f.path === folder)?.kind || 'inbox';
 
-  // Vérifie une session existante au démarrage.
   useEffect(() => {
     api
       .me()
@@ -32,7 +33,7 @@ export default function App() {
   }, []);
 
   const loadFolders = useCallback(() => {
-    api
+    return api
       .folders()
       .then((data) => {
         setFolders(data.folders);
@@ -52,11 +53,14 @@ export default function App() {
   function selectFolder(path) {
     setFolder(path);
     setSelected(null);
+    setQuery('');
     setDrawerOpen(false);
   }
 
-  function openMessage(m) {
-    setSelected({ uid: m.uid, folder });
+  function refresh() {
+    setRefreshing(true);
+    setReloadToken((t) => t + 1);
+    loadFolders().finally(() => setTimeout(() => setRefreshing(false), 400));
   }
 
   async function logout() {
@@ -64,11 +68,6 @@ export default function App() {
     setUser(null);
     setSelected(null);
     setFolders([]);
-  }
-
-  function refresh() {
-    setReloadToken((t) => t + 1);
-    loadFolders();
   }
 
   function onReply(mode, msg) {
@@ -86,94 +85,88 @@ export default function App() {
   if (!user) return <Login onLogin={setUser} />;
 
   return (
-    <div className="h-full flex bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 overflow-hidden">
-      {/* Sidebar — desktop */}
-      <aside className="hidden lg:flex w-64 shrink-0">
-        <Sidebar
-          folders={folders}
-          current={folder}
-          onSelect={selectFolder}
-          onCompose={() => setComposer({ mode: 'new' })}
-          email={user.email}
-          onLogout={logout}
-        />
-      </aside>
+    <div className="h-full flex flex-col bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-slate-100 overflow-hidden">
+      <Topbar
+        email={user.email}
+        query={query}
+        onSearch={(q) => {
+          setQuery(q);
+          setSelected(null);
+        }}
+        onRefresh={refresh}
+        refreshing={refreshing}
+        onMenu={() => setDrawerOpen(true)}
+        onLogout={logout}
+      />
 
-      {/* Sidebar — drawer mobile */}
-      {drawerOpen && (
-        <div className="fixed inset-0 z-40 lg:hidden">
-          <div
-            className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
-            onClick={() => setDrawerOpen(false)}
+      <div className="flex-1 flex min-h-0">
+        {/* Sidebar desktop */}
+        <aside className="hidden lg:block w-60 shrink-0">
+          <Sidebar
+            folders={folders}
+            current={folder}
+            onSelect={selectFolder}
+            onCompose={() => setComposer({ mode: 'new' })}
           />
-          <div className="absolute left-0 top-0 bottom-0 w-72 max-w-[80%] animate-fade-in">
-            <Sidebar
-              folders={folders}
-              current={folder}
-              onSelect={selectFolder}
-              onCompose={() => {
-                setComposer({ mode: 'new' });
-                setDrawerOpen(false);
-              }}
-              email={user.email}
-              onLogout={logout}
+        </aside>
+
+        {/* Drawer mobile */}
+        {drawerOpen && (
+          <div className="fixed inset-0 z-40 lg:hidden">
+            <div
+              className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
+              onClick={() => setDrawerOpen(false)}
             />
-          </div>
-        </div>
-      )}
-
-      {/* Liste — masquée sur mobile quand un message est ouvert */}
-      <section
-        className={`w-full lg:w-96 shrink-0 lg:border-r border-slate-200 dark:border-slate-800 flex-col ${
-          selected ? 'hidden lg:flex' : 'flex'
-        }`}
-      >
-        {/* Barre mobile avec menu */}
-        <div className="lg:hidden flex items-center gap-2 px-2 h-14 border-b border-slate-100 dark:border-slate-800 shrink-0">
-          <button
-            onClick={() => setDrawerOpen(true)}
-            className="p-2 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"
-          >
-            <Menu className="h-5 w-5" />
-          </button>
-          <span className="font-medium text-slate-700 dark:text-slate-200">
-            {FOLDER_LABELS[currentKind] || folder}
-          </span>
-        </div>
-        <div className="flex-1 overflow-hidden">
-          <MessageList
-            folder={folder}
-            folderKind={currentKind}
-            selectedUid={selected?.uid}
-            onOpen={openMessage}
-            reloadToken={reloadToken}
-          />
-        </div>
-      </section>
-
-      {/* Vue message */}
-      <main className={`flex-1 min-w-0 ${selected ? 'flex' : 'hidden lg:flex'} flex-col`}>
-        {selected ? (
-          <MessageView
-            key={`${selected.folder}-${selected.uid}`}
-            folder={selected.folder}
-            uid={selected.uid}
-            onBack={() => setSelected(null)}
-            onReply={onReply}
-            onDeleted={() => {
-              setSelected(null);
-              refresh();
-            }}
-          />
-        ) : (
-          <div className="flex-1 flex flex-col items-center justify-center text-slate-300 dark:text-slate-600">
-            <Mail className="h-16 w-16 mb-3" />
-            <p className="text-sm">Sélectionnez un message à lire</p>
+            <div className="absolute left-0 top-0 bottom-0 w-72 max-w-[82%] bg-white dark:bg-slate-900 shadow-2xl animate-fade-in">
+              <div className="flex justify-end p-2">
+                <button
+                  onClick={() => setDrawerOpen(false)}
+                  className="p-2 rounded-full text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+              <Sidebar
+                folders={folders}
+                current={folder}
+                onSelect={selectFolder}
+                onCompose={() => {
+                  setComposer({ mode: 'new' });
+                  setDrawerOpen(false);
+                }}
+              />
+            </div>
           </div>
         )}
-      </main>
 
-      {/* Fenêtre de composition */}
+        {/* Zone principale : carte arrondie façon Gmail */}
+        <main className="flex-1 min-w-0 lg:py-3 lg:pr-3">
+          <div className="h-full bg-white dark:bg-slate-900 lg:rounded-2xl lg:shadow-sm lg:border border-slate-200 dark:border-slate-800 overflow-hidden">
+            {selected ? (
+              <MessageView
+                key={`${selected.folder}-${selected.uid}`}
+                folder={selected.folder}
+                folderKind={currentKind}
+                uid={selected.uid}
+                onBack={() => setSelected(null)}
+                onReply={onReply}
+                onChanged={refresh}
+              />
+            ) : (
+              <MessageList
+                folder={folder}
+                folderKind={currentKind}
+                query={query}
+                selectedUid={selected?.uid}
+                onOpen={(m) => setSelected({ uid: m.uid, folder })}
+                reloadToken={reloadToken}
+                onChanged={loadFolders}
+              />
+            )}
+          </div>
+        </main>
+      </div>
+
       {composer && (
         <Composer
           mode={composer.mode}
