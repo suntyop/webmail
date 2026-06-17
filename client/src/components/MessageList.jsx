@@ -10,9 +10,11 @@ import {
   Trash2,
   MailOpen,
   Mail as MailIcon,
+  Clock,
 } from 'lucide-react';
 import { api } from '../api.js';
 import { formatDate, displayName, initials, avatarColor, FOLDER_LABELS } from '../utils.js';
+import SchedulePopover from './SchedulePopover.jsx';
 
 const LIMIT = 50;
 
@@ -30,6 +32,7 @@ export default function MessageList({
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [snoozeTarget, setSnoozeTarget] = useState(null);
   const reqId = useRef(0);
 
   const load = useCallback(async () => {
@@ -107,6 +110,19 @@ export default function MessageList({
     e.stopPropagation();
     removeRow(m.uid);
     api.remove(folder, m.uid).catch(() => load());
+  }
+
+  function openSnooze(e, m) {
+    e.stopPropagation();
+    setSnoozeTarget(m);
+  }
+
+  function doSnooze(date) {
+    const m = snoozeTarget;
+    setSnoozeTarget(null);
+    if (!m) return;
+    removeRow(m.uid);
+    api.snooze(folder, m.uid, date.toISOString(), m.subject).catch(() => load());
   }
 
   const totalPages = Math.max(1, Math.ceil(total / LIMIT));
@@ -225,6 +241,11 @@ export default function MessageList({
                     )}
                     <IconBtn icon={Trash2} title="Supprimer" onClick={(e) => remove(e, m)} danger />
                     <IconBtn
+                      icon={Clock}
+                      title="Reporter à plus tard"
+                      onClick={(e) => openSnooze(e, m)}
+                    />
+                    <IconBtn
                       icon={m.seen ? MailIcon : MailOpen}
                       title={m.seen ? 'Marquer comme non lu' : 'Marquer comme lu'}
                       onClick={(e) => toggleRead(e, m)}
@@ -258,6 +279,15 @@ export default function MessageList({
             <ChevronRight className="h-5 w-5 text-slate-500" />
           </button>
         </div>
+      )}
+
+      {snoozeTarget && (
+        <SchedulePopover
+          modal
+          title="Reporter à"
+          onPick={doSnooze}
+          onClose={() => setSnoozeTarget(null)}
+        />
       )}
     </div>
   );

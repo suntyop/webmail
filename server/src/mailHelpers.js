@@ -12,6 +12,7 @@ export function categorize(mailbox) {
   if (su.includes('junk')) return 'junk';
   if (su.includes('archive')) return 'archive';
   if (mailbox.path.toUpperCase() === 'INBOX') return 'inbox';
+  if (mailbox.path === 'Snoozed' || mailbox.name === 'Snoozed') return 'snoozed';
   return 'other';
 }
 

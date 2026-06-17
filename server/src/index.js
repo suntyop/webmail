@@ -8,6 +8,8 @@ import { config } from './config.js';
 import { requireAuth } from './middleware.js';
 import authRoutes from './routes/auth.js';
 import mailRoutes from './routes/mail.js';
+import scheduleRoutes from './routes/schedule.js';
+import { startScheduler } from './scheduler.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -28,8 +30,9 @@ app.get('/api/health', (req, res) => res.json({ ok: true }));
 // Authentification
 app.use('/api/auth', authRoutes);
 
-// API mail (protégée)
+// API mail + programmation (protégées)
 app.use('/api', requireAuth, mailRoutes);
+app.use('/api', requireAuth, scheduleRoutes);
 
 // Sert le frontend compilé en production (client/dist), si présent.
 const clientDist = path.resolve(__dirname, '../../client/dist');
@@ -49,4 +52,5 @@ app.use((err, req, res, next) => {
 
 app.listen(config.port, () => {
   console.log(`Webmail server à l'écoute sur http://localhost:${config.port}`);
+  startScheduler();
 });

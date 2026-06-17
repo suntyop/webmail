@@ -1,10 +1,8 @@
 import { Router } from 'express';
 import multer from 'multer';
-import nodemailer from 'nodemailer';
-import MailComposer from 'nodemailer/lib/mail-composer/index.js';
-import { config } from '../config.js';
 import { getClient } from '../imap.js';
 import { asyncHandler } from '../middleware.js';
+import { deliver } from '../mailer.js';
 import {
   categorize,
   findSpecialFolder,
@@ -379,50 +377,11 @@ router.post(
       }
     }
 
-    const mailOptions = {
-      from: email,
-      to,
-      cc: cc || undefined,
-      bcc: bcc || undefined,
-      subject: subject || '(sans objet)',
-      text: text || undefined,
-      html: html || undefined,
-      inReplyTo: inReplyTo || undefined,
-      references: references || undefined,
-      attachments,
-    };
-
-    const transporter = nodemailer.createTransport({
-      host: config.smtp.host,
-      port: config.smtp.port,
-      secure: config.smtp.secure,
-      auth: { user: email, pass: password },
-      // Délais courts : en cas de port SMTP bloqué/injoignable, on échoue
-      // rapidement avec une erreur claire plutôt que de rester bloqué.
-      connectionTimeout: 15000,
-      greetingTimeout: 10000,
-      socketTimeout: 20000,
-    });
-
-    // Compile une fois le MIME brut pour l'envoyer ET l'archiver dans "Envoyés".
-    const raw = await new MailComposer(mailOptions).compile().build();
-
-    await transporter.sendMail({
-      envelope: {
-        from: email,
-        to: [to, cc, bcc].filter(Boolean).join(','),
-      },
-      raw,
-    });
-
-    // Archive une copie dans le dossier Envoyés (best-effort).
-    try {
-      const client = await getClient(req.session);
-      const sent = await findSpecialFolder(client, 'sent');
-      if (sent) await client.append(sent, raw, ['\\Seen']);
-    } catch {
-      /* l'envoi a réussi, l'archivage n'est pas bloquant */
-    }
+    await deliver(
+      { email, password },
+      { to, cc, bcc, subject, text, html, inReplyTo, references },
+      attachments
+    );
 
     // Marque le message d'origine comme répondu.
     if (inReplyTo && req.body.replyUid && req.body.replyFolder) {

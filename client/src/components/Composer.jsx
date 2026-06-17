@@ -8,9 +8,11 @@ import {
   ChevronDown,
   ChevronUp,
   Minus,
+  Clock,
 } from 'lucide-react';
 import { api } from '../api.js';
 import { displayName, formatDate, formatSize } from '../utils.js';
+import SchedulePopover from './SchedulePopover.jsx';
 
 function htmlToText(html) {
   const el = document.createElement('div');
@@ -77,6 +79,7 @@ export default function Composer({ mode = 'new', original, userEmail, onClose, o
   const [sending, setSending] = useState(false);
   const [error, setError] = useState('');
   const [minimized, setMinimized] = useState(false);
+  const [showSchedule, setShowSchedule] = useState(false);
 
   function addFiles(list) {
     setFiles((prev) => [...prev, ...Array.from(list)]);
@@ -85,15 +88,7 @@ export default function Composer({ mode = 'new', original, userEmail, onClose, o
     setFiles((prev) => prev.filter((_, idx) => idx !== i));
   }
 
-  async function submit(e) {
-    e.preventDefault();
-    if (!to.trim()) {
-      setError('Indiquez au moins un destinataire.');
-      return;
-    }
-    setError('');
-    setSending(true);
-
+  function buildForm() {
     const fd = new FormData();
     fd.append('to', to.trim());
     if (cc.trim()) fd.append('cc', cc.trim());
@@ -116,9 +111,38 @@ export default function Composer({ mode = 'new', original, userEmail, onClose, o
       fd.append('forwardFolder', original.folder);
     }
     files.forEach((f) => fd.append('attachments', f));
+    return fd;
+  }
 
+  async function submit(e) {
+    e?.preventDefault();
+    if (!to.trim()) {
+      setError('Indiquez au moins un destinataire.');
+      return;
+    }
+    setError('');
+    setSending(true);
     try {
-      await api.send(fd);
+      await api.send(buildForm());
+      onSent?.();
+    } catch (err) {
+      setError(err.message);
+      setSending(false);
+    }
+  }
+
+  async function schedule(date) {
+    setShowSchedule(false);
+    if (!to.trim()) {
+      setError('Indiquez au moins un destinataire.');
+      return;
+    }
+    setError('');
+    setSending(true);
+    try {
+      const fd = buildForm();
+      fd.append('sendAt', date.toISOString());
+      await api.scheduleSend(fd);
       onSent?.();
     } catch (err) {
       setError(err.message);
@@ -255,14 +279,36 @@ export default function Composer({ mode = 'new', original, userEmail, onClose, o
             )}
 
             <div className="flex items-center gap-2 px-3 h-14 border-t border-slate-100 dark:border-slate-800 shrink-0">
-              <button
-                type="submit"
-                disabled={sending}
-                className="flex items-center gap-2 pl-5 pr-6 py-2.5 rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 text-white font-medium shadow-md shadow-indigo-500/30 hover:from-indigo-600 hover:to-violet-700 active:scale-[0.99] transition disabled:opacity-60"
-              >
-                {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-                Envoyer
-              </button>
+              <div className="relative flex items-center">
+                <button
+                  type="submit"
+                  disabled={sending}
+                  className="flex items-center gap-2 pl-5 pr-5 py-2.5 rounded-l-full bg-gradient-to-br from-indigo-500 to-violet-600 text-white font-medium shadow-md shadow-indigo-500/30 hover:from-indigo-600 hover:to-violet-700 active:scale-[0.99] transition disabled:opacity-60"
+                >
+                  {sending ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Send className="h-4 w-4" />
+                  )}
+                  Envoyer
+                </button>
+                <button
+                  type="button"
+                  disabled={sending}
+                  onClick={() => setShowSchedule((v) => !v)}
+                  title="Programmer l'envoi"
+                  className="flex items-center px-2 py-2.5 rounded-r-full bg-gradient-to-br from-indigo-500 to-violet-600 text-white border-l border-white/20 hover:from-indigo-600 hover:to-violet-700 transition disabled:opacity-60"
+                >
+                  <ChevronDown className="h-4 w-4" />
+                </button>
+                {showSchedule && (
+                  <SchedulePopover
+                    title="Envoyer plus tard"
+                    onPick={schedule}
+                    onClose={() => setShowSchedule(false)}
+                  />
+                )}
+              </div>
               <label className="p-2.5 rounded-full text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer" title="Joindre des fichiers">
                 <Paperclip className="h-5 w-5" />
                 <input type="file" multiple className="hidden" onChange={(e) => addFiles(e.target.files)} />

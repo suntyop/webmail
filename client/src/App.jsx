@@ -3,10 +3,11 @@ import { Loader2, Mail, X } from 'lucide-react';
 import { api } from './api.js';
 import Login from './components/Login.jsx';
 import Topbar from './components/Topbar.jsx';
-import Sidebar from './components/Sidebar.jsx';
+import Sidebar, { SCHEDULED_VIEW } from './components/Sidebar.jsx';
 import MessageList from './components/MessageList.jsx';
 import MessageView from './components/MessageView.jsx';
 import Composer from './components/Composer.jsx';
+import ScheduledView from './components/ScheduledView.jsx';
 
 export default function App() {
   const [user, setUser] = useState(null);
@@ -142,7 +143,9 @@ export default function App() {
         {/* Zone principale : carte arrondie façon Gmail */}
         <main className="flex-1 min-w-0 lg:py-3 lg:pr-3">
           <div className="h-full bg-white dark:bg-slate-900 lg:rounded-2xl lg:shadow-sm lg:border border-slate-200 dark:border-slate-800 overflow-hidden">
-            {selected ? (
+            {folder === SCHEDULED_VIEW ? (
+              <ScheduledView />
+            ) : selected ? (
               <MessageView
                 key={`${selected.folder}-${selected.uid}`}
                 folder={selected.folder}

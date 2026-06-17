@@ -7,8 +7,12 @@ import {
   Archive,
   Folder,
   Pencil,
+  Clock,
+  CalendarClock,
 } from 'lucide-react';
 import { FOLDER_LABELS } from '../utils.js';
+
+export const SCHEDULED_VIEW = '__scheduled__';
 
 const ICONS = {
   inbox: Inbox,
@@ -17,10 +21,11 @@ const ICONS = {
   trash: Trash2,
   junk: ShieldAlert,
   archive: Archive,
+  snoozed: Clock,
   other: Folder,
 };
 
-const ORDER = ['inbox', 'sent', 'drafts', 'archive', 'junk', 'trash', 'other'];
+const ORDER = ['inbox', 'snoozed', 'sent', 'drafts', 'archive', 'junk', 'trash', 'other'];
 
 export default function Sidebar({ folders, current, onSelect, onCompose }) {
   const sorted = [...folders].sort(
@@ -68,6 +73,19 @@ export default function Sidebar({ folders, current, onSelect, onCompose }) {
             </button>
           );
         })}
+
+        {/* Vue virtuelle : envois différés & reports */}
+        <button
+          onClick={() => onSelect(SCHEDULED_VIEW)}
+          className={`group w-full flex items-center gap-4 pl-4 pr-3 h-9 rounded-r-full text-sm transition ${
+            current === SCHEDULED_VIEW
+              ? 'bg-indigo-100 dark:bg-indigo-500/20 text-indigo-800 dark:text-indigo-200 font-semibold'
+              : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+          }`}
+        >
+          <CalendarClock className="h-[18px] w-[18px] shrink-0" />
+          <span className="flex-1 text-left truncate">Programmés</span>
+        </button>
       </nav>
     </div>
   );

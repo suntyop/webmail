@@ -13,10 +13,12 @@ import {
   Download,
   Mail,
   MoreHorizontal,
+  Clock,
 } from 'lucide-react';
 import { api } from '../api.js';
 import { formatDate, displayName, initials, avatarColor, formatSize } from '../utils.js';
 import { parseThread, parseAttribution } from '../quote.js';
+import SchedulePopover from './SchedulePopover.jsx';
 
 function HtmlFrame({ html }) {
   const ref = useRef(null);
@@ -155,6 +157,7 @@ export default function MessageView({ folder, folderKind, uid, onBack, onReply, 
   const [error, setError] = useState('');
   const [flagged, setFlagged] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [showSnooze, setShowSnooze] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -196,6 +199,19 @@ export default function MessageView({ folder, folderKind, uid, onBack, onReply, 
     setBusy(true);
     try {
       await api.archive(folder, uid);
+      onChanged?.();
+      onBack();
+    } catch (err) {
+      alert(err.message);
+      setBusy(false);
+    }
+  }
+
+  async function handleSnooze(date) {
+    setShowSnooze(false);
+    setBusy(true);
+    try {
+      await api.snooze(folder, uid, date.toISOString(), msg?.subject);
       onChanged?.();
       onBack();
     } catch (err) {
@@ -246,6 +262,17 @@ export default function MessageView({ folder, folderKind, uid, onBack, onReply, 
           <Action icon={Archive} label="Archiver" onClick={handleArchive} />
         )}
         <Action icon={Trash2} label="Supprimer" onClick={handleDelete} danger />
+        <div className="relative">
+          <Action icon={Clock} label="Reporter" onClick={() => setShowSnooze((v) => !v)} />
+          {showSnooze && (
+            <SchedulePopover
+              title="Reporter à"
+              direction="down"
+              onPick={handleSnooze}
+              onClose={() => setShowSnooze(false)}
+            />
+          )}
+        </div>
         <div className="w-px h-5 bg-slate-200 dark:bg-slate-700 mx-1" />
         <Action icon={Reply} label="Répondre" onClick={() => onReply('reply', msg)} />
         <Action icon={ReplyAll} label="À tous" onClick={() => onReply('replyAll', msg)} />

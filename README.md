@@ -11,7 +11,28 @@ Fonctionnalités :
 - ✍️ Rédaction, **réponse**, **réponse à tous**, **transfert**
 - 📎 Lecture **et** envoi de pièces jointes (images inline affichées)
 - 🔍 Recherche, pagination, marquage lu/non-lu et favoris
+- ⏰ **Envoi différé** (programmer un envoi) et **snooze** (reporter un mail à plus tard)
+- 🧵 Historique des échanges replié en cartes par message (façon conversation)
 - 🌗 Thème clair/sombre automatique, interface optimisée mobile
+
+## Envoi différé & snooze
+
+- **Envoi différé** : dans la fenêtre de composition, la flèche à côté de
+  « Envoyer » propose des créneaux (dans 1 h, ce soir, demain, week-end…) ou une
+  date précise.
+- **Snooze** : reportez un mail ; il quitte la boîte de réception (déplacé dans
+  un dossier `Snoozed`) et y revient automatiquement au moment choisi.
+- La vue **Programmés** (barre latérale) liste et permet d'annuler les envois
+  différés et reports en attente.
+
+Ces actions se déclenchent côté serveur via un planificateur, même si vous êtes
+déconnecté. Pour cela, les éléments en attente sont stockés dans `server/data/`
+avec les **identifiants chiffrés au repos** (AES-256-GCM, clé dérivée du
+`SESSION_SECRET`). Conséquences :
+
+- Définissez un `SESSION_SECRET` fort et **stable** (le changer rend les
+  éléments programmés existants indéchiffrables — ils sont alors ignorés).
+- Le dossier `server/data/` est ignoré par git ; sauvegardez-le si besoin.
 
 ## Architecture
 

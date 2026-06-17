@@ -63,6 +63,17 @@ export const api = {
     }),
   send: (formData) => request('/send', { method: 'POST', body: formData }),
 
+  // Programmation : envoi différé & snooze
+  scheduleSend: (formData) =>
+    request('/schedule/send', { method: 'POST', body: formData }),
+  snooze: (folder, uid, returnAt, subject) =>
+    request('/schedule/snooze', {
+      method: 'POST',
+      body: JSON.stringify({ folder, uid, returnAt, subject }),
+    }),
+  listScheduled: () => request('/schedule'),
+  cancelScheduled: (id) => request(`/schedule/${id}`, { method: 'DELETE' }),
+
   attachmentUrl: (folder, uid, index, inline = false) =>
     `${BASE}/messages/${uid}/attachments/${index}?folder=${encodeURIComponent(
       folder
