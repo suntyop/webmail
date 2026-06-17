@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useMemo } from 'react';
 import DOMPurify from 'dompurify';
 import {
   ArrowLeft,
@@ -12,9 +12,11 @@ import {
   Paperclip,
   Download,
   Mail,
+  MoreHorizontal,
 } from 'lucide-react';
 import { api } from '../api.js';
 import { formatDate, displayName, initials, avatarColor, formatSize } from '../utils.js';
+import { splitMessage } from '../quote.js';
 
 function HtmlFrame({ html }) {
   const ref = useRef(null);
@@ -55,6 +57,62 @@ function HtmlFrame({ html }) {
       className="w-full border-0 bg-white dark:bg-slate-900"
       style={{ minHeight: 120 }}
     />
+  );
+}
+
+function TextPart({ text }) {
+  return (
+    <pre className="whitespace-pre-wrap font-sans text-[15px] leading-relaxed text-slate-700 dark:text-slate-200">
+      {text}
+    </pre>
+  );
+}
+
+/**
+ * Affiche le corps du message en repliant l'historique cité (échanges
+ * précédents) derrière un bouton « ••• », façon Gmail.
+ */
+function MessageBody({ msg }) {
+  const { type, main, quoted } = useMemo(() => splitMessage(msg), [msg]);
+  const [showQuote, setShowQuote] = useState(false);
+
+  const render = (content) =>
+    type === 'html' ? <HtmlFrame html={content} /> : <TextPart text={content} />;
+
+  if (!main && !quoted) {
+    return (
+      <span className="text-slate-400 flex items-center gap-2">
+        <Mail className="h-4 w-4" /> Message vide
+      </span>
+    );
+  }
+
+  return (
+    <div>
+      {render(main)}
+
+      {quoted && (
+        <div className="mt-1">
+          <button
+            onClick={() => setShowQuote((v) => !v)}
+            title={showQuote ? "Masquer l'historique" : 'Afficher les messages précédents'}
+            className={`inline-flex items-center justify-center h-6 px-2 rounded-full transition ${
+              showQuote
+                ? 'bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600'
+                : 'bg-slate-200 dark:bg-slate-700 text-slate-500 hover:bg-slate-300 dark:hover:bg-slate-600'
+            }`}
+          >
+            <MoreHorizontal className="h-4 w-4" />
+          </button>
+
+          {showQuote && (
+            <div className="mt-2 pl-3 border-l-2 border-slate-200 dark:border-slate-700 animate-fade-in">
+              {render(quoted)}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -232,19 +290,9 @@ export default function MessageView({ folder, folderKind, uid, onBack, onReply, 
             </div>
           )}
 
-          {/* Corps */}
+          {/* Corps (historique cité replié façon Gmail) */}
           <div className="rounded-xl overflow-hidden">
-            {msg.html ? (
-              <HtmlFrame html={msg.html} />
-            ) : (
-              <pre className="whitespace-pre-wrap font-sans text-[15px] leading-relaxed text-slate-700 dark:text-slate-200">
-                {msg.text || (
-                  <span className="text-slate-400 flex items-center gap-2">
-                    <Mail className="h-4 w-4" /> Message vide
-                  </span>
-                )}
-              </pre>
-            )}
+            <MessageBody msg={msg} />
           </div>
 
           {/* Réponse rapide */}
