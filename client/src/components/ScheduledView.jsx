@@ -26,8 +26,8 @@ export default function ScheduledView() {
   }
 
   return (
-    <div className="flex flex-col h-full bg-white dark:bg-slate-900">
-      <div className="shrink-0 flex items-center gap-2 px-4 sm:px-6 h-12 border-b border-slate-100 dark:border-slate-800">
+    <div className="flex flex-col h-full">
+      <div className="shrink-0 flex items-center gap-2 px-4 sm:px-6 h-12 border-b border-slate-200/40 dark:border-slate-700/30">
         <CalendarClock className="h-4 w-4 text-slate-400" />
         <h2 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">
           Programmés

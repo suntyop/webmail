@@ -23,23 +23,32 @@ export default function Login({ onLogin }) {
   }
 
   return (
-    <div className="min-h-full flex items-center justify-center bg-gradient-to-br from-indigo-50 via-white to-sky-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 p-4">
-      <div className="w-full max-w-sm animate-fade-in">
+    <div className="relative min-h-full flex items-center justify-center overflow-hidden p-4">
+      <div className="absolute inset-0 app-bg" />
+      <div className="blob h-[28rem] w-[28rem] -top-32 -left-24" style={{ background: '#a5b4fc' }} />
+      <div
+        className="blob h-[26rem] w-[26rem] -bottom-32 -right-24"
+        style={{ background: '#e9d5ff', animationDelay: '-7s' }}
+      />
+      <div
+        className="blob h-[20rem] w-[20rem] top-1/3 right-1/4"
+        style={{ background: '#bae6fd', animationDelay: '-13s' }}
+      />
+
+      <div className="relative z-10 w-full max-w-sm animate-rise">
         <div className="flex flex-col items-center mb-8">
-          <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-500/30">
-            <Mail className="h-8 w-8 text-white" />
+          <div className="h-20 w-20 rounded-[1.75rem] bg-gradient-to-br from-indigo-500 via-violet-500 to-fuchsia-500 flex items-center justify-center shadow-2xl shadow-violet-500/40 rotate-3">
+            <Mail className="h-10 w-10 text-white" />
           </div>
-          <h1 className="mt-4 text-2xl font-semibold text-slate-800 dark:text-slate-100">
-            Webmail
-          </h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400">
+          <h1 className="mt-5 text-4xl font-bold tracking-tight text-gradient">Webmail</h1>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
             Connectez-vous à votre messagerie
           </p>
         </div>
 
         <form
           onSubmit={submit}
-          className="bg-white/80 dark:bg-slate-800/60 backdrop-blur rounded-2xl shadow-xl shadow-slate-200/50 dark:shadow-black/30 border border-slate-100 dark:border-slate-700 p-6 space-y-4"
+          className="glass ring-glow rounded-3xl shadow-2xl p-6 space-y-4"
         >
           <div>
             <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">

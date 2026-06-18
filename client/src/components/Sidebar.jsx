@@ -33,7 +33,7 @@ export default function Sidebar({ folders, current, onSelect, onCompose }) {
   );
 
   return (
-    <div className="flex flex-col h-full bg-white dark:bg-slate-900 py-3">
+    <div className="flex flex-col h-full py-3">
       <div className="px-3 mb-3">
         <button
           onClick={onCompose}
@@ -55,8 +55,8 @@ export default function Sidebar({ folders, current, onSelect, onCompose }) {
               onClick={() => onSelect(f.path)}
               className={`group w-full flex items-center gap-4 pl-4 pr-3 h-9 rounded-r-full text-sm transition ${
                 active
-                  ? 'bg-indigo-100 dark:bg-indigo-500/20 text-indigo-800 dark:text-indigo-200 font-semibold'
-                  : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                  ? 'bg-gradient-to-r from-indigo-500/15 to-violet-500/10 text-indigo-700 dark:text-indigo-200 font-semibold ring-1 ring-indigo-500/15'
+                  : 'text-slate-700 dark:text-slate-300 hover:bg-slate-500/10'
               }`}
             >
               <Icon className="h-[18px] w-[18px] shrink-0" />
@@ -79,8 +79,8 @@ export default function Sidebar({ folders, current, onSelect, onCompose }) {
           onClick={() => onSelect(SCHEDULED_VIEW)}
           className={`group w-full flex items-center gap-4 pl-4 pr-3 h-9 rounded-r-full text-sm transition ${
             current === SCHEDULED_VIEW
-              ? 'bg-indigo-100 dark:bg-indigo-500/20 text-indigo-800 dark:text-indigo-200 font-semibold'
-              : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+              ? 'bg-gradient-to-r from-indigo-500/15 to-violet-500/10 text-indigo-700 dark:text-indigo-200 font-semibold ring-1 ring-indigo-500/15'
+              : 'text-slate-700 dark:text-slate-300 hover:bg-slate-500/10'
           }`}
         >
           <CalendarClock className="h-[18px] w-[18px] shrink-0" />

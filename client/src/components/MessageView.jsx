@@ -249,9 +249,9 @@ export default function MessageView({ folder, folderKind, uid, onBack, onReply, 
   );
 
   return (
-    <div className="flex flex-col h-full bg-white dark:bg-slate-900 animate-fade-in">
+    <div className="flex flex-col h-full animate-fade-in">
       {/* Toolbar */}
-      <div className="shrink-0 flex items-center gap-1 px-2 sm:px-4 h-14 border-b border-slate-100 dark:border-slate-800">
+      <div className="shrink-0 flex items-center gap-1 px-2 sm:px-4 h-14 border-b border-slate-200/40 dark:border-slate-700/30">
         <button
           onClick={onBack}
           title="Retour à la liste"

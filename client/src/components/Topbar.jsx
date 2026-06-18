@@ -35,19 +35,19 @@ export default function Topbar({
   }
 
   return (
-    <header className="h-16 shrink-0 flex items-center gap-2 px-3 sm:px-4 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
+    <header className="h-16 shrink-0 flex items-center gap-2 px-3 sm:px-5">
       <button
         onClick={onMenu}
-        className="p-2 rounded-full text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition lg:hidden"
+        className="p-2 rounded-full text-slate-600 dark:text-slate-300 hover:bg-slate-500/10 transition lg:hidden"
       >
         <Menu className="h-5 w-5" />
       </button>
 
-      <div className="flex items-center gap-2 w-[200px] shrink-0">
-        <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shrink-0">
+      <div className="flex items-center gap-2.5 w-[200px] shrink-0">
+        <div className="h-9 w-9 rounded-2xl bg-gradient-to-br from-indigo-500 via-violet-500 to-fuchsia-500 flex items-center justify-center shrink-0 shadow-lg shadow-violet-500/30">
           <Mail className="h-5 w-5 text-white" />
         </div>
-        <span className="font-semibold text-lg text-slate-800 dark:text-slate-100 hidden sm:block">
+        <span className="font-bold text-xl tracking-tight text-gradient hidden sm:block">
           Webmail
         </span>
       </div>
@@ -55,18 +55,18 @@ export default function Topbar({
       {/* Recherche */}
       <form onSubmit={submit} className="flex-1 max-w-2xl">
         <div className="relative group">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 group-focus-within:text-indigo-500 transition" />
           <input
             value={value}
             onChange={(e) => setValue(e.target.value)}
             placeholder="Rechercher dans les messages"
-            className="w-full pl-12 pr-10 py-2.5 rounded-full bg-slate-100 dark:bg-slate-800 focus:bg-white dark:focus:bg-slate-900 text-[15px] text-slate-700 dark:text-slate-200 border border-transparent focus:border-indigo-300 dark:focus:border-indigo-600 focus:shadow-md focus:outline-none transition"
+            className="w-full pl-12 pr-10 py-2.5 rounded-full glass text-[15px] text-slate-700 dark:text-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/50 shadow-sm focus:shadow-md transition"
           />
           {value && (
             <button
               type="button"
               onClick={clear}
-              className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-full text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700"
+              className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-full text-slate-400 hover:bg-slate-500/10"
             >
               <X className="h-4 w-4" />
             </button>
@@ -78,7 +78,7 @@ export default function Topbar({
         <button
           onClick={onRefresh}
           title="Actualiser"
-          className="p-2.5 rounded-full text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+          className="p-2.5 rounded-full text-slate-600 dark:text-slate-300 hover:bg-slate-500/10 transition"
         >
           <RefreshCw className={`h-5 w-5 ${refreshing ? 'animate-spin' : ''}`} />
         </button>
@@ -93,7 +93,7 @@ export default function Topbar({
             {initials({ address: email })}
           </button>
           {menuOpen && (
-            <div className="absolute right-0 mt-2 w-64 rounded-2xl bg-white dark:bg-slate-800 shadow-xl border border-slate-100 dark:border-slate-700 p-2 z-50 animate-fade-in">
+            <div className="absolute right-0 mt-2 w-64 rounded-2xl glass shadow-2xl p-2 z-50 animate-fade-in">
               <div className="flex items-center gap-3 px-3 py-2">
                 <div
                   className={`h-10 w-10 rounded-full ${avatarColor(

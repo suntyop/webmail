@@ -129,9 +129,9 @@ export default function MessageList({
   const isSent = folderKind === 'sent' || folderKind === 'drafts';
 
   return (
-    <div className="flex flex-col h-full bg-white dark:bg-slate-900">
+    <div className="flex flex-col h-full">
       {/* En-tête liste */}
-      <div className="shrink-0 flex items-center justify-between px-4 sm:px-6 h-12 border-b border-slate-100 dark:border-slate-800">
+      <div className="shrink-0 flex items-center justify-between px-4 sm:px-6 h-12 border-b border-slate-200/40 dark:border-slate-700/30">
         <h2 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">
           {query ? `Recherche : « ${query} »` : FOLDER_LABELS[folderKind] || folder}
         </h2>
@@ -163,14 +163,19 @@ export default function MessageList({
                 <li
                   key={m.uid}
                   onClick={() => onOpen(m)}
-                  className={`group relative flex items-center gap-3 px-3 sm:px-5 h-[60px] sm:h-[52px] cursor-pointer border-b border-slate-50 dark:border-slate-800/60 transition ${
+                  className={`group relative flex items-center gap-3 px-3 sm:px-5 h-[64px] sm:h-[56px] cursor-pointer border-b border-slate-200/40 dark:border-slate-700/25 transition-colors ${
                     active
-                      ? 'bg-indigo-50 dark:bg-indigo-500/10'
+                      ? 'bg-indigo-500/10'
                       : m.seen
-                        ? 'bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800/40 hover:shadow-[inset_0_0_0_9999px_rgba(0,0,0,0.012)]'
-                        : 'bg-indigo-50/30 dark:bg-slate-800/30 hover:bg-slate-50 dark:hover:bg-slate-800/50'
+                        ? 'hover:bg-slate-500/[0.06]'
+                        : 'bg-indigo-500/[0.04] hover:bg-slate-500/[0.07]'
                   }`}
                 >
+                  {/* Accent non-lu */}
+                  {!m.seen && (
+                    <span className="absolute left-0 top-1/2 -translate-y-1/2 h-7 w-1 rounded-r-full bg-gradient-to-b from-indigo-500 to-violet-500" />
+                  )}
+
                   {/* Étoile */}
                   <button
                     onClick={(e) => toggleStar(e, m)}
@@ -186,9 +191,9 @@ export default function MessageList({
 
                   {/* Avatar */}
                   <div
-                    className={`h-8 w-8 shrink-0 rounded-full ${avatarColor(
+                    className={`h-9 w-9 shrink-0 rounded-full ${avatarColor(
                       person?.address
-                    )} text-white text-xs font-semibold flex items-center justify-center`}
+                    )} text-white text-xs font-semibold flex items-center justify-center ring-2 ring-white/70 dark:ring-white/10 shadow-sm`}
                   >
                     {initials(person)}
                   </div>
@@ -235,7 +240,7 @@ export default function MessageList({
                   </span>
 
                   {/* Actions rapides au survol (desktop) */}
-                  <div className="absolute right-3 hidden group-hover:sm:flex items-center gap-0.5 bg-inherit pl-2">
+                  <div className="absolute right-3 hidden group-hover:sm:flex items-center gap-0.5 glass-soft rounded-full px-1 shadow-md ring-1 ring-black/5">
                     {folderKind !== 'archive' && (
                       <IconBtn icon={Archive} title="Archiver" onClick={(e) => archive(e, m)} />
                     )}
